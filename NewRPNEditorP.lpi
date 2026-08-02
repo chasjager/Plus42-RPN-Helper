@@ -45,6 +45,7 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form1"/>
         <ResourceBaseClass Value="Form"/>
+        <UnitName Value="New"/>
       </Unit>
     </Units>
   </ProjectOptions>
