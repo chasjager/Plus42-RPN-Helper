@@ -73,21 +73,21 @@ begin
 end;
 
 { Called via QueueAsyncCall to get accurate caret position }
-procedure TForm1.UpdateCaretInfo(Data: PtrInt);
-begin
-  // Get current caret position
-  FCarX := SynEdit1.CaretX;
-  FCarY := SynEdit1.CaretY;
-
-  // Get current line text if valid
-  if (FCarY >= 1) and (FCarY <= SynEdit1.Lines.Count) then
-    FThisString := SynEdit1.Lines[FCarY - 1]
-  else
-    FThisString := '';
-
-  // Update labels
-  UpdateLabels;
-end;
+//procedure TForm1.UpdateCaretInfo(Data: PtrInt);
+//begin
+//  // Get current caret position
+//  FCarX := SynEdit1.CaretX;
+//  FCarY := SynEdit1.CaretY;
+//
+//  // Get current line text if valid
+//  if (FCarY >= 1) and (FCarY <= SynEdit1.Lines.Count) then
+//    FThisString := SynEdit1.Lines[FCarY - 1]
+//  else
+//    FThisString := '';
+//
+//  // Update labels
+//  UpdateLabels;
+//end;
 
 { Timer fallback - optional }
 procedure TForm1.Timer1Timer(Sender: TObject);
@@ -156,13 +156,42 @@ begin
 end;
 
 { Handles all status changes - most comprehensive }
+//procedure TForm1.SynEdit1StatusChange(Sender: TObject; Changes: TSynStatusChanges);
+//begin
+//  // This catches everything - arrow keys, mouse clicks, text changes, etc.
+//  if (scCaretX in Changes) or (scCaretY in Changes) or (scModified in Changes) then
+//  begin
+//    Application.QueueAsyncCall(@UpdateCaretInfo, 0);
+//  end;
+//end;
+//===============================================================================
+
+procedure TForm1.UpdateCaretInfo(Data: PtrInt);
+var
+  LineText: string;
+begin
+  // Get the text at cursor
+  if SynEdit1.CaretY <= SynEdit1.Lines.Count then
+    LineText := SynEdit1.Lines[SynEdit1.CaretY - 1]
+  else
+    LineText := '';
+
+  // Update labels
+  Label1.Caption := IntToStr(SynEdit1.CaretX);
+  Label2.Caption := IntToStr(SynEdit1.CaretY);
+  Label3.Caption := LineText;
+end;
+
 procedure TForm1.SynEdit1StatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  // This catches everything - arrow keys, mouse clicks, text changes, etc.
-  if (scCaretX in Changes) or (scCaretY in Changes) or (scModified in Changes) then
-  begin
+  // This ONE event catches EVERYTHING (arrow keys, mouse clicks, typing, etc.)
+  if (scCaretX in Changes) or (scCaretY in Changes) then
     Application.QueueAsyncCall(@UpdateCaretInfo, 0);
-  end;
 end;
+
+
+
+
+
 
 end.
