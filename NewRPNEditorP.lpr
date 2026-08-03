@@ -10,14 +10,14 @@ uses
    athreads ,
    {$ENDIF}
    Interfaces , // this includes the LCL widgetset
-   Forms , NewRPNEditorU
+   Forms , NewRPNEditorU , Plus42Comms
    { you can add units after this };
 
 {$R *.res}
 
 begin
    RequireDerivedFormResource := True;
-   Application.Scaled := True;
+	 Application.Scaled := True;
    {$PUSH}{$WARN 5044 OFF}
    Application.MainFormOnTaskbar := True;
    {$POP}

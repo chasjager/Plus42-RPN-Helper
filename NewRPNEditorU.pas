@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils , Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, SynEdit, SynEditTypes , SynHighlighterAny, LCLType, StrUtils
+  ExtCtrls, SynEdit, SynEditTypes , SynHighlighterAny, LCLType, StrUtils ,
+  SynFacilHighlighter , SynEditHighlighter
 
   ;
 
@@ -59,11 +60,14 @@ type
     ssCount: word;
 
 
+
+
     // Private methods
 
 		procedure CaretToPoint(X , Y: Integer);
   procedure ProcessLine;
 		procedure ReplaceCurrentLineWithCursorRestore(const NewText: string);
+
     procedure UpdateCaretInfo(Data: PtrInt);
     procedure UpdateLabels;
 
@@ -171,10 +175,39 @@ begin
       SynEdit1.CaretX := CaretX;
   end;
 end;
+ 
 
 
 procedure TForm1.FormCreate(Sender: TObject);
+  var
+  SynFacilSyn1: TSynFacilSyn;
+  Group1ID, Group2ID: Integer;
 begin
+  //SynAnySyn1 := TSynAnySyn.Create(Self);
+  SynEdit1.Highlighter := SynAnySyn1;
+
+  // 1. First Group: Standard Keywords (e.g., White text on Blue background)
+  SynAnySyn1.KeyWords.Add('LBL');
+  SynAnySyn1.KeyWords.Add('end');
+  SynAnySyn1.KeyAttri.Foreground := clWhite;
+  SynAnySyn1.KeyAttri.Background := clBlue;
+  SynAnySyn1.KeyAttri.Style := [fsBold];
+
+  // 2. Second Group: Objects/Commands (e.g., Yellow text on Green background)
+  SynAnySyn1.Objects.Add('RCL');
+  SynAnySyn1.Objects.Add('read');
+  SynAnySyn1.ObjectAttri.Foreground := clYellow;
+  SynAnySyn1.ObjectAttri.Background := clGreen;
+  SynAnySyn1.ObjectAttri.Style := [];
+
+  // 3. Third Group: Constants (e.g., Black text on Red background)
+  SynAnySyn1.Constants.Add('true');
+  SynAnySyn1.Constants.Add('false');
+  SynAnySyn1.ConstantAttri.Foreground := clBlack;
+  SynAnySyn1.ConstantAttri.Background := clRed;
+  SynAnySyn1.ConstantAttri.Style := [fsItalic];
+
+
   LocalLabels := splitstring('A B C D E F G H I J a b c d e', ' ');
   Arithmeticals := SplitString('+ - / *', ' ');
   Alphacommands:= SplitString('CLV CLP XEQ GTO AVIEW VIEW STO STO+ STO- STO* ' +
@@ -197,16 +230,13 @@ begin
   VarsList := TStringList.Create;
   ss := '';
   ssCount := 0;
-    SynAnySyn1 := TSynAnySyn.Create(Self);
-  SynEdit1.Highlighter := SynAnySyn1;
 
-  // Add keywords programmatically
-  SynAnySyn1.KeyWords.Clear;
-  SynAnySyn1.KeyWords.Add('LBL');
-  SynAnySyn1.KeyWords.Add('world');
-  SynAnySyn1.KeyWords.Add('test');
 
-  SynAnySyn1.Enabled := True;
+
+
+
+
+
 end;
 
 
