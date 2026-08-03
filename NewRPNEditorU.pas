@@ -5,17 +5,25 @@ unit NewRPNEditorU;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, SynEdit, SynEditTypes, LCLType;
+  Classes, SysUtils , Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  ExtCtrls, SynEdit, SynEditTypes, LCLType, StrUtils
+
+  ;
 
 type
+
+	{ TForm1 }
+
   TForm1 = class(TForm)
+		 Button1: TButton;
+		 CheckBox1: TCheckBox;
     Label1: TLabel;  // For CaretX
     Label2: TLabel;  // For CaretY
     Label3: TLabel;  // For current line text
     SynEdit1: TSynEdit;
     Timer1: TTimer;
 
+		procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure SynEdit1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -23,6 +31,8 @@ type
     procedure SynEdit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure SynEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure SynEdit1StatusChange(Sender: TObject; Changes: TSynStatusChanges);
+    procedure SynEdit1KeyPress(Sender: TObject; var Key: char);
+    procedure CheckBox1Click(Sender: TObject);
 
   private
     // Standardized private variables
@@ -30,8 +40,18 @@ type
     FCarY: Integer;              // Current line number (1-based)
     FThisString: string;         // Text of current line
     FLastLine: Integer;          // Last processed line for comparison
+    //FlineText: String;
+    Alphacommands,
+    LocalLabels,
+    Arithmeticals: TStringDynArray;
+
+
 
     // Private methods
+
+		procedure CaretToPoint(X , Y: Integer);
+  procedure ProcessLine;
+		procedure ReplaceCurrentLineWithCursorRestore(const NewText: string);
     procedure UpdateCaretInfo(Data: PtrInt);
     procedure UpdateLabels;
 
@@ -48,8 +68,81 @@ implementation
 
 { TForm1 }
 
+procedure TForm1.ProcessLine;
+var
+	 arr: TStringDynArray;
+	 LA: SizeInt;
+	 s , Aline: String;
+	 a , x , y , i: Integer;
+	 endChar: Char;
+begin
+  Aline :=  Synedit1.Lines[SynEdit1.CaretY -1] ;
+  arr := splitString(Aline, ' ');
+  //ShowMessage(arr[0] + LineEnding + arr[1]);
+  LA := Length(arr);
+  for i := 0 to Length(arr) - 1 do begin
+    Trim(Arr[i]);
+	end;
+
+  case LA of
+    1:  begin
+          //endChar := Arr[0][Length(arr[0])];
+          //if endChar in Arithmeticals then
+          //  SynEdit1.Lines.Add('');
+
+        end;
+    2:  if (arr[0] in Alphacommands) and (arr[1] in LocalLabels) then
+          Exit
+        else if (arr[0] in Alphacommands) then begin
+          s := arr[1];
+          s := ' "' + s + '"';
+          s := arr[0] + s;
+          //ReplaceCurrentLineWithCursorRestore(s)
+          SynEdit1.CaretX := Length(s) + 2;
+          x := Synedit1.CaretX;
+          y := synedit1.CaretY;
+          SynEdit1.Lines[Synedit1.CaretY - 1]  := s;
+        end;
+    end;
+End;
+procedure TForm1.CaretToPoint(X, Y: Integer);
+begin
+  SynEdit1.CaretXY := Point(X, Y);
+
+end;
+
+procedure TForm1.ReplaceCurrentLineWithCursorRestore(const NewText: string);
+var
+  LineIndex: Integer;
+  CaretX, CaretY: Integer;
+begin
+  // Save cursor position
+  CaretX := SynEdit1.CaretX;
+  CaretY := SynEdit1.CaretY;
+
+  LineIndex := CaretY - 1;
+
+  if (LineIndex >= 0) and (LineIndex < SynEdit1.Lines.Count) then
+  begin
+    SynEdit1.Lines[LineIndex] := NewText;
+
+    // Restore cursor position (keep it on the same line)
+    SynEdit1.CaretY := CaretY;
+    // Make sure X doesn't exceed new line length
+    if CaretX > Length(NewText) + 1 then
+      SynEdit1.CaretX := Length(NewText) + 1
+    else
+      SynEdit1.CaretX := CaretX;
+  end;
+end;
+
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  LocalLabels := splitstring('A B C D E F G H I J a b c d e', ' ');
+  Arithmeticals := SplitString('+ - / *', ' ');
+  Alphacommands:= SplitString('CLV CLP XEQ GTO AVIEW VIEW STO STO+ STO- STO* ' +
+                  'STO/ RCL RCL+ RCL- RCL* MVAR RCL/ LBL STO INPUT', ' ');
   FLastLine := -1;
   FCarX := 0;
   FCarY := 0;
@@ -62,6 +155,18 @@ begin
   // Timer is optional - disabled by default
   Timer1.Enabled := False;
   Timer1.Interval := 50;
+  SynEdit1.Lines.Add('LBL CATS');
+  SynEdit1.Lines.Add('LBL A');
+  CaretToPoint(Length('lbl cats') + 1, 1);
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+        with SynEdit1 do begin
+        CaretX := 1;
+        CaretY := CaretY + 1;
+        Invalidate;
+			end;
 end;
 
 { Updates all labels with current caret info }
@@ -72,22 +177,7 @@ begin
   Label3.Caption := FThisString;
 end;
 
-{ Called via QueueAsyncCall to get accurate caret position }
-//procedure TForm1.UpdateCaretInfo(Data: PtrInt);
-//begin
-//  // Get current caret position
-//  FCarX := SynEdit1.CaretX;
-//  FCarY := SynEdit1.CaretY;
-//
-//  // Get current line text if valid
-//  if (FCarY >= 1) and (FCarY <= SynEdit1.Lines.Count) then
-//    FThisString := SynEdit1.Lines[FCarY - 1]
-//  else
-//    FThisString := '';
-//
-//  // Update labels
-//  UpdateLabels;
-//end;
+
 
 { Timer fallback - optional }
 procedure TForm1.Timer1Timer(Sender: TObject);
@@ -141,6 +231,8 @@ begin
   if Key in [VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_HOME, VK_END, VK_PRIOR, VK_NEXT] then
   begin
     // Use QueueAsyncCall for arrow keys to get correct position
+
+
     Application.QueueAsyncCall(@UpdateCaretInfo, 0);
   end;
 end;
@@ -148,27 +240,23 @@ end;
 { Handles key presses }
 procedure TForm1.SynEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  // For Tab, Enter, etc.
-  if Key in [VK_TAB, VK_RETURN] then
-  begin
+  ;
+  if Key = VK_RETURN then
+    processLine  ;
+
+
     Application.QueueAsyncCall(@UpdateCaretInfo, 0);
-  end;
+
+
+
 end;
 
-{ Handles all status changes - most comprehensive }
-//procedure TForm1.SynEdit1StatusChange(Sender: TObject; Changes: TSynStatusChanges);
-//begin
-//  // This catches everything - arrow keys, mouse clicks, text changes, etc.
-//  if (scCaretX in Changes) or (scCaretY in Changes) or (scModified in Changes) then
-//  begin
-//    Application.QueueAsyncCall(@UpdateCaretInfo, 0);
-//  end;
-//end;
+
 //===============================================================================
 
 procedure TForm1.UpdateCaretInfo(Data: PtrInt);
 var
-  LineText: string;
+  LineText: String;
 begin
   // Get the text at cursor
   if SynEdit1.CaretY <= SynEdit1.Lines.Count then
@@ -180,6 +268,7 @@ begin
   Label1.Caption := IntToStr(SynEdit1.CaretX);
   Label2.Caption := IntToStr(SynEdit1.CaretY);
   Label3.Caption := LineText;
+  FThisString := LineText;
 end;
 
 procedure TForm1.SynEdit1StatusChange(Sender: TObject; Changes: TSynStatusChanges);
@@ -188,7 +277,37 @@ begin
   if (scCaretX in Changes) or (scCaretY in Changes) then
     Application.QueueAsyncCall(@UpdateCaretInfo, 0);
 end;
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+  // Optional: Show status
+  if CheckBox1.Checked then
+    SynEdit1.Hint := 'UPPERCASE mode ON'
+  else
+    SynEdit1.Hint := 'UPPERCASE mode OFF';
+end;
+procedure TForm1.SynEdit1KeyPress(Sender: TObject; var Key: char);
+var
+	 S: String;
+begin
+    Key := UpCase(Key);
+    { Key is '+' for testing }
+    S := FThisString;
+    s := s + key  ;
+    if (key in Arithmeticals) and (not Trim(s).Contains(' ')) and
+        (length(Trim(s)) > 1) Then begin
+      //showMessage(FThisString);
+      With synedit1 do begin
+         CaretX := Length(s) + 1;
+	       Lines[FCarY - 1]  := s;
+         if CaretY <Lines.Count then
+            CaretY := CaretY + 1;
+	       CaretX := 1;
+         CaretY := CaretY + 1;
+			end;
+      Key := #0;
+    end;
 
+end;
 
 
 
