@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils , Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, SynEdit, SynEditTypes, LCLType, StrUtils
+  ExtCtrls, SynEdit, SynEditTypes , SynHighlighterAny, LCLType, StrUtils
 
   ;
 
@@ -16,15 +16,24 @@ type
 
   TForm1 = class(TForm)
 		 Button1: TButton;
+		 Button2: TButton;
 		 CheckBox1: TCheckBox;
-    Label1: TLabel;  // For CaretX
-    Label2: TLabel;  // For CaretY
-    Label3: TLabel;  // For current line text
+		 Label1: TLabel;
+		 Label2: TLabel;
+		 Label3: TLabel;
+		 ListBox1: TListBox;
+		 ListBox2: TListBox;
+		 Memo1: TMemo;
+		Panel1: TPanel;
+		SynAnySyn1: TSynAnySyn;
     SynEdit1: TSynEdit;
     Timer1: TTimer;
 
 		procedure Button1Click(Sender: TObject);
+		procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+		procedure ListBox1Click(Sender: TObject);
+		procedure ListBox2Click(Sender: TObject);
     procedure SynEdit1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure SynEdit1Change(Sender: TObject);
@@ -40,11 +49,14 @@ type
     FCarY: Integer;              // Current line number (1-based)
     FThisString: string;         // Text of current line
     FLastLine: Integer;          // Last processed line for comparison
+    FLineCount: integer;
     //FlineText: String;
     Alphacommands,
     LocalLabels,
     Arithmeticals: TStringDynArray;
-
+    VarsList: TStringList;
+    ss: String;
+    ssCount: word;
 
 
     // Private methods
@@ -86,15 +98,16 @@ begin
 
   case LA of
     1:  begin
-          //endChar := Arr[0][Length(arr[0])];
-          //if endChar in Arithmeticals then
-          //  SynEdit1.Lines.Add('');
 
         end;
     2:  if (arr[0] in Alphacommands) and (arr[1] in LocalLabels) then
           Exit
         else if (arr[0] in Alphacommands) then begin
           s := arr[1];
+          s := StringReplace(s, '"', '', [rfReplaceAll]);
+          VarsList.Add(s);
+
+
           s := ' "' + s + '"';
           s := arr[0] + s;
           //ReplaceCurrentLineWithCursorRestore(s)
@@ -103,8 +116,31 @@ begin
           y := synedit1.CaretY;
           SynEdit1.Lines[Synedit1.CaretY - 1]  := s;
         end;
+    3:  begin
+          if (arr[0] in Alphacommands) and (arr[2] in LocalLabels) then
+            Exit
+          else if (arr[0] in Alphacommands) then begin
+	           s := arr[2];
+	           s := StringReplace(s, '"', '', [rfReplaceAll]);
+	           VarsList.Add(s);
+
+
+	           s := '"' + s + '"';
+             s := format('%s %s %s',[arr[0], arr[1], s]);
+	           //s := arr[0] + ' ' + arr[1] + ' ' +  s;
+	             SynEdit1.CaretX := Length(s) + 2;
+	           x := Synedit1.CaretX;
+	           y := synedit1.CaretY;
+	           SynEdit1.Lines[Synedit1.CaretY - 1]  := s;
+
+
+
+          end
     end;
-End;
+  end;
+  end;
+
+
 procedure TForm1.CaretToPoint(X, Y: Integer);
 begin
   SynEdit1.CaretXY := Point(X, Y);
@@ -158,15 +194,69 @@ begin
   SynEdit1.Lines.Add('LBL CATS');
   SynEdit1.Lines.Add('LBL A');
   CaretToPoint(Length('lbl cats') + 1, 1);
+  VarsList := TStringList.Create;
+  ss := '';
+  ssCount := 0;
+    SynAnySyn1 := TSynAnySyn.Create(Self);
+  SynEdit1.Highlighter := SynAnySyn1;
+
+  // Add keywords programmatically
+  SynAnySyn1.KeyWords.Clear;
+  SynAnySyn1.KeyWords.Add('LBL');
+  SynAnySyn1.KeyWords.Add('world');
+  SynAnySyn1.KeyWords.Add('test');
+
+  SynAnySyn1.Enabled := True;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+
+procedure TForm1.ListBox1Click(Sender: TObject);
+var
+	 AItem: String;
 begin
-        with SynEdit1 do begin
-        CaretX := 1;
-        CaretY := CaretY + 1;
-        Invalidate;
-			end;
+   if ListBox1.ItemIndex <> -1 then begin
+     AItem := ListBox1.Items[ListBox1.ItemIndex];
+     with SynEdit1 do begin
+       if FCarY <= FLineCount then
+          Lines.Insert(CaretY - 1, AItem)
+       else
+         SynEdit1.Lines.Add(AItem);
+     end;
+
+	 end;
+end;
+
+procedure TForm1.ListBox2Click(Sender: TObject);
+begin
+  ss := ss + ListBox2.Items[ListBox2.ItemIndex];
+  SynEdit1.lines.add(ss);
+end;
+
+
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+	 alist: TStringDynArray;
+	 s: String;
+	 I , j: Integer;
+begin
+ alist := SplitString('48, 49, 50, 51, 52, 53, 54, 55, 56, 57', ',');
+ for I := 0 to ListBox1.Items.Count - 1 do begin
+   s := ListBox1.Items[i];
+   for j := 0 to Length(s) - 1 do begin
+     if IntToStr(Ord(s[j])) in alist then
+      ShowMessage(s);
+
+		 end;
+	 end;
+
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+   Memo1.Lines.Add(ss);
+   ss := '';
+
 end;
 
 { Updates all labels with current caret info }
@@ -174,7 +264,7 @@ procedure TForm1.UpdateLabels;
 begin
   Label1.Caption := IntToStr(FCarX);
   Label2.Caption := IntToStr(FCarY);
-  Label3.Caption := FThisString;
+  Label3.Caption :=  FThisString;
 end;
 
 
@@ -207,6 +297,7 @@ begin
     FThisString := '';
 
   UpdateLabels;
+  FLineCount := Synedit1.Lines.Count;
 end;
 
 { Handles mouse clicks }
@@ -289,23 +380,23 @@ procedure TForm1.SynEdit1KeyPress(Sender: TObject; var Key: char);
 var
 	 S: String;
 begin
-    Key := UpCase(Key);
-    { Key is '+' for testing }
-    S := FThisString;
-    s := s + key  ;
-    if (key in Arithmeticals) and (not Trim(s).Contains(' ')) and
-        (length(Trim(s)) > 1) Then begin
-      //showMessage(FThisString);
-      With synedit1 do begin
-         CaretX := Length(s) + 1;
-	       Lines[FCarY - 1]  := s;
-         if CaretY <Lines.Count then
-            CaretY := CaretY + 1;
-	       CaretX := 1;
-         CaretY := CaretY + 1;
-			end;
-      Key := #0;
-    end;
+   // Key := UpCase(Key);
+   // { Key is '+' for testing }
+   // S := FThisString;
+   // s := s + key  ;
+   // if (key in Arithmeticals) and (not Trim(s).Contains(' ')) and
+   //     (length(Trim(s)) > 1) Then begin
+   //   //showMessage(FThisString);
+   //   With synedit1 do begin
+   //      CaretX := Length(s) + 1;
+	  //     Lines[FCarY - 1]  := s;
+   //      if CaretY <Lines.Count then
+   //         CaretY := CaretY + 1;
+	  //     CaretX := 1;
+   //      CaretY := CaretY + 1;
+			//end;
+   //   Key := #0;
+   // end;
 
 end;
 
