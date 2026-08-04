@@ -7,8 +7,8 @@ interface
 uses
   Classes, SysUtils , Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, SynEdit, SynEditTypes , SynHighlighterAny, LCLType, StrUtils ,
-  SynFacilHighlighter , SynEditHighlighter
-
+  SynFacilHighlighter , SynEditHighlighter ,  Plus42Comms , Clipbrd , Menus ,
+  SetupSynEdit
   ;
 
 type
@@ -16,33 +16,47 @@ type
 	{ TForm1 }
 
   TForm1 = class(TForm)
+		 btnProgrammingMode: TButton;
+		 btnExportToPlus42: TButton;
+		 btnImportFromPlus42: TButton;
+		 btnLoad: TButton;
+		 btnSave: TButton;
 		 Button1: TButton;
-		 Button2: TButton;
-		 CheckBox1: TCheckBox;
-		 Label1: TLabel;
-		 Label2: TLabel;
-		 Label3: TLabel;
+		 ColorDialog1: TColorDialog;
 		 ListBox1: TListBox;
 		 ListBox2: TListBox;
-		 Memo1: TMemo;
-		Panel1: TPanel;
+		 ListBox3: TListBox;
+		 MainMenu1: TMainMenu;
+		 mnuSelectSaveDirectory: TMenuItem;
+		 mnuSelectColours: TMenuItem;
+		 mnuSetup: TMenuItem;
+		 OpenDialog1: TOpenDialog;
+		 SaveDialog1: TSaveDialog;
+		 SelectDirectoryDialog1: TSelectDirectoryDialog;
 		SynAnySyn1: TSynAnySyn;
     SynEdit1: TSynEdit;
     Timer1: TTimer;
 
-		procedure Button1Click(Sender: TObject);
-		procedure Button2Click(Sender: TObject);
+		procedure btnLoadClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
+    //procedure Button1Click(Sender: TObject);
+		procedure FormActivate(Sender: TObject);
+	  procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
 		procedure ListBox1Click(Sender: TObject);
 		procedure ListBox2Click(Sender: TObject);
+		procedure mnuSelectColoursClick(Sender: TObject);
+		procedure mnuSelectSaveDirectoryClick(Sender: TObject);
     procedure SynEdit1Click(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
     procedure SynEdit1Change(Sender: TObject);
     procedure SynEdit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure SynEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure SynEdit1StatusChange(Sender: TObject; Changes: TSynStatusChanges);
-    procedure SynEdit1KeyPress(Sender: TObject; var Key: char);
+    //procedure SynEdit1KeyPress(Sender: TObject; var Key: char);
     procedure CheckBox1Click(Sender: TObject);
+    procedure btnExportToPlus42Click(Sender: TObject);
+  procedure btnImportFromPlus42Click(Sender: TObject);
+	procedure btnProgrammingModeClick(Sender: TObject);
 
   private
     // Standardized private variables
@@ -58,13 +72,13 @@ type
     VarsList: TStringList;
     ss: String;
     ssCount: word;
-
-
-
-
+    FSaveDirectory: String;
     // Private methods
+    ConfigList: TStringList;
+    Fsavekey: String;
 
-		procedure CaretToPoint(X , Y: Integer);
+
+  procedure CaretToPoint(X , Y: Integer);
   procedure ProcessLine;
 		procedure ReplaceCurrentLineWithCursorRestore(const NewText: string);
 
@@ -83,6 +97,41 @@ implementation
 {$R *.lfm}
 
 { TForm1 }
+procedure TForm1. btnImportFromPlus42Click( Sender: TObject);
+var
+  e: string;
+  UniqueFileName: String;
+  Timestamp: String;
+  NewText: string;
+  ErrMsg: string;
+begin
+  Timestamp := FormatDateTime('yyyymmdd_hhnnss', Now);
+  UniqueFileName := ExtractFilePath(ParamStr(0)) + 'SavedSession_'
+                                            + Timestamp + '.okken';
+  SynEdit1.Lines.SaveToFile(UniqueFileName);
+  if CopyFromPlus42(NewText, ErrMsg) then
+  begin
+    SynEdit1.Text := NewText;
+    ShowMessage('Previous code saved to' + LineEnding + UniqueFileName);
+  end
+  else
+  begin
+    ShowMessage(ErrMsg);
+  end;
+end;
+procedure TForm1. btnExportToPlus42Click( Sender: TObject);
+var
+  e: string;
+begin
+  PasteToPlus42(SynEdit1.Lines, e);
+end;
+
+procedure TForm1. btnProgrammingModeClick( Sender: TObject);
+var
+  e: string;
+begin
+  ToggleProgrammingMode(e);
+end;
 
 procedure TForm1.ProcessLine;
 var
@@ -94,7 +143,6 @@ var
 begin
   Aline :=  Synedit1.Lines[SynEdit1.CaretY -1] ;
   arr := splitString(Aline, ' ');
-  //ShowMessage(arr[0] + LineEnding + arr[1]);
   LA := Length(arr);
   for i := 0 to Length(arr) - 1 do begin
     Trim(Arr[i]);
@@ -110,8 +158,6 @@ begin
           s := arr[1];
           s := StringReplace(s, '"', '', [rfReplaceAll]);
           VarsList.Add(s);
-
-
           s := ' "' + s + '"';
           s := arr[0] + s;
           //ReplaceCurrentLineWithCursorRestore(s)
@@ -127,8 +173,6 @@ begin
 	           s := arr[2];
 	           s := StringReplace(s, '"', '', [rfReplaceAll]);
 	           VarsList.Add(s);
-
-
 	           s := '"' + s + '"';
              s := format('%s %s %s',[arr[0], arr[1], s]);
 	           //s := arr[0] + ' ' + arr[1] + ' ' +  s;
@@ -136,13 +180,10 @@ begin
 	           x := Synedit1.CaretX;
 	           y := synedit1.CaretY;
 	           SynEdit1.Lines[Synedit1.CaretY - 1]  := s;
-
-
-
           end
     end;
   end;
-  end;
+end;
 
 
 procedure TForm1.CaretToPoint(X, Y: Integer);
@@ -156,7 +197,7 @@ var
   LineIndex: Integer;
   CaretX, CaretY: Integer;
 begin
-  // Save cursor position
+
   CaretX := SynEdit1.CaretX;
   CaretY := SynEdit1.CaretY;
 
@@ -165,10 +206,7 @@ begin
   if (LineIndex >= 0) and (LineIndex < SynEdit1.Lines.Count) then
   begin
     SynEdit1.Lines[LineIndex] := NewText;
-
-    // Restore cursor position (keep it on the same line)
     SynEdit1.CaretY := CaretY;
-    // Make sure X doesn't exceed new line length
     if CaretX > Length(NewText) + 1 then
       SynEdit1.CaretX := Length(NewText) + 1
     else
@@ -179,33 +217,10 @@ end;
 
 
 procedure TForm1.FormCreate(Sender: TObject);
-  var
-  SynFacilSyn1: TSynFacilSyn;
-  Group1ID, Group2ID: Integer;
+
 begin
-  //SynAnySyn1 := TSynAnySyn.Create(Self);
-  SynEdit1.Highlighter := SynAnySyn1;
-
-  // 1. First Group: Standard Keywords (e.g., White text on Blue background)
-  SynAnySyn1.KeyWords.Add('LBL');
-  SynAnySyn1.KeyWords.Add('end');
-  SynAnySyn1.KeyAttri.Foreground := clWhite;
-  SynAnySyn1.KeyAttri.Background := clBlue;
-  SynAnySyn1.KeyAttri.Style := [fsBold];
-
-  // 2. Second Group: Objects/Commands (e.g., Yellow text on Green background)
-  SynAnySyn1.Objects.Add('RCL');
-  SynAnySyn1.Objects.Add('read');
-  SynAnySyn1.ObjectAttri.Foreground := clYellow;
-  SynAnySyn1.ObjectAttri.Background := clGreen;
-  SynAnySyn1.ObjectAttri.Style := [];
-
-  // 3. Third Group: Constants (e.g., Black text on Red background)
-  SynAnySyn1.Constants.Add('true');
-  SynAnySyn1.Constants.Add('false');
-  SynAnySyn1.ConstantAttri.Foreground := clBlack;
-  SynAnySyn1.ConstantAttri.Background := clRed;
-  SynAnySyn1.ConstantAttri.Style := [fsItalic];
+  ConfigList := TStringlist.Create;
+  ConfigureRPNHighlighter(SynEdit1, SynAnySyn1);
 
 
   LocalLabels := splitstring('A B C D E F G H I J a b c d e', ' ');
@@ -216,26 +231,16 @@ begin
   FCarX := 0;
   FCarY := 0;
   FThisString := '';
-
-  Label1.Caption := 'Col: 0';
-  Label2.Caption := 'Line: 0';
-  Label3.Caption := '';
-
-  // Timer is optional - disabled by default
-  Timer1.Enabled := False;
-  Timer1.Interval := 50;
+  FSaveDirectory := '';
   SynEdit1.Lines.Add('LBL CATS');
   SynEdit1.Lines.Add('LBL A');
   CaretToPoint(Length('lbl cats') + 1, 1);
   VarsList := TStringList.Create;
   ss := '';
   ssCount := 0;
-
-
-
-
-
-
+  btnProgrammingMode.Caption := 'Toggle' + LineEnding
+                                  + 'Programming' + LineEnding + 'Mode';
+   Fsavekey := 'save_directory';
 
 end;
 
@@ -252,66 +257,73 @@ begin
        else
          SynEdit1.Lines.Add(AItem);
      end;
-
 	 end;
 end;
 
 procedure TForm1.ListBox2Click(Sender: TObject);
-begin
-  ss := ss + ListBox2.Items[ListBox2.ItemIndex];
-  SynEdit1.lines.add(ss);
-end;
-
-
-
-procedure TForm1.Button1Click(Sender: TObject);
 var
-	 alist: TStringDynArray;
-	 s: String;
-	 I , j: Integer;
+	 AItem: String;
 begin
- alist := SplitString('48, 49, 50, 51, 52, 53, 54, 55, 56, 57', ',');
- for I := 0 to ListBox1.Items.Count - 1 do begin
-   s := ListBox1.Items[i];
-   for j := 0 to Length(s) - 1 do begin
-     if IntToStr(Ord(s[j])) in alist then
-      ShowMessage(s);
-
-		 end;
+   if ListBox1.ItemIndex <> -1 then begin
+     AItem := ListBox2.Items[ListBox2.ItemIndex];
+     with SynEdit1 do begin
+       if FCarY <= FLineCount then
+          Lines.Insert(CaretY - 1, AItem)
+       else
+         SynEdit1.Lines.Add(AItem);
+     end;
 	 end;
+end;
+
+procedure TForm1.mnuSelectColoursClick(Sender: TObject);
+begin
+  if ColorDialog1.Execute then begin
+
+	end;
 
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
-begin
-   Memo1.Lines.Add(ss);
-   ss := '';
+procedure TForm1.mnuSelectSaveDirectoryClick(Sender: TObject);
 
+begin
+
+  if SelectDirectoryDialog1.Execute then begin
+    FSaveDirectory := SelectDirectoryDialog1.Filename;
+
+  end;
+  ConfigList.Values[Fsavekey] := FSaveDirectory;
+end;
+
+procedure TForm1.FormActivate(Sender: TObject);
+begin
+  if FileExists('config.txt') then
+    ConfigList.LoadFromFile('config.txt');
+  showmessage(ConfigList[0]);
+  SelectDirectoryDialog1.InitialDir := ConfigList.Values[Fsavekey];
+end;
+
+
+
+procedure TForm1.btnSaveClick(Sender: TObject);
+begin
+  SaveDialog1.InitialDir := FSaveDirectory;
+  if SaveDialog1.Execute then  begin
+    SynEdit1.Lines.SaveToFile(SaveDialog1.FileName);
+	 end;
+end;
+
+procedure TForm1.btnLoadClick(Sender: TObject);
+begin
+  OpenDialog1.InitialDir := FSaveDirectory;
+  if OpenDialog1.Execute then begin
+    SynEdit1.Lines.LoadFromFile(OpenDialog1.FileName);
+	end;
 end;
 
 { Updates all labels with current caret info }
 procedure TForm1.UpdateLabels;
 begin
-  Label1.Caption := IntToStr(FCarX);
-  Label2.Caption := IntToStr(FCarY);
-  Label3.Caption :=  FThisString;
-end;
 
-
-
-{ Timer fallback - optional }
-procedure TForm1.Timer1Timer(Sender: TObject);
-begin
-  // Get current caret position directly
-  FCarX := SynEdit1.CaretX;
-  FCarY := SynEdit1.CaretY;
-
-  if (FCarY >= 1) and (FCarY <= SynEdit1.Lines.Count) then
-    FThisString := SynEdit1.Lines[FCarY - 1]
-  else
-    FThisString := '';
-
-  UpdateLabels;
 end;
 
 { Handles text changes (typing, pasting, deleting) }
@@ -353,7 +365,6 @@ begin
   begin
     // Use QueueAsyncCall for arrow keys to get correct position
 
-
     Application.QueueAsyncCall(@UpdateCaretInfo, 0);
   end;
 end;
@@ -361,15 +372,9 @@ end;
 { Handles key presses }
 procedure TForm1.SynEdit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  ;
   if Key = VK_RETURN then
     processLine  ;
-
-
     Application.QueueAsyncCall(@UpdateCaretInfo, 0);
-
-
-
 end;
 
 
@@ -386,9 +391,9 @@ begin
     LineText := '';
 
   // Update labels
-  Label1.Caption := IntToStr(SynEdit1.CaretX);
-  Label2.Caption := IntToStr(SynEdit1.CaretY);
-  Label3.Caption := LineText;
+  //Label1.Caption := IntToStr(SynEdit1.CaretX);
+  //Label2.Caption := IntToStr(SynEdit1.CaretY);
+  //Label3.Caption := LineText;
   FThisString := LineText;
 end;
 
@@ -401,33 +406,24 @@ end;
 procedure TForm1.CheckBox1Click(Sender: TObject);
 begin
   // Optional: Show status
-  if CheckBox1.Checked then
-    SynEdit1.Hint := 'UPPERCASE mode ON'
-  else
-    SynEdit1.Hint := 'UPPERCASE mode OFF';
+  //if CheckBox1.Checked then
+  //  SynEdit1.Hint := 'UPPERCASE mode ON'
+  //else
+  //  SynEdit1.Hint := 'UPPERCASE mode OFF';
 end;
-procedure TForm1.SynEdit1KeyPress(Sender: TObject; var Key: char);
-var
-	 S: String;
-begin
-   // Key := UpCase(Key);
-   // { Key is '+' for testing }
-   // S := FThisString;
-   // s := s + key  ;
-   // if (key in Arithmeticals) and (not Trim(s).Contains(' ')) and
-   //     (length(Trim(s)) > 1) Then begin
-   //   //showMessage(FThisString);
-   //   With synedit1 do begin
-   //      CaretX := Length(s) + 1;
-	  //     Lines[FCarY - 1]  := s;
-   //      if CaretY <Lines.Count then
-   //         CaretY := CaretY + 1;
-	  //     CaretX := 1;
-   //      CaretY := CaretY + 1;
-			//end;
-   //   Key := #0;
-   // end;
 
+procedure TForm1.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var
+  UniqueFileName: String;
+  Timestamp: String;
+
+begin
+  Timestamp := FormatDateTime('yyyymmdd_hhnnss', Now);
+  UniqueFileName := ExtractFilePath(ParamStr(0)) + 'SavedSession_' + Timestamp + '.okken';
+  SynEdit1.Lines.SaveToFile(UniqueFileName);
+  ConfigList.SaveToFile('config.txt');
+
+  ConfigList.free;
 end;
 
 

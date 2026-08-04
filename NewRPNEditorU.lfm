@@ -1,18 +1,25 @@
 object Form1: TForm1
-  Left = 452
-  Height = 739
-  Top = 153
-  Width = 759
-  Caption = 'Form1'
-  ClientHeight = 739
-  ClientWidth = 759
+  Left = 617
+  Height = 802
+  Top = 121
+  Width = 449
+  Caption = 'Jager-meister RPN editor'
+  ClientHeight = 802
+  ClientWidth = 449
+  Font.CharSet = ANSI_CHARSET
+  Font.Color = clMaroon
+  Font.Pitch = fpVariable
+  Font.Quality = fqDraft
+  Menu = MainMenu1
   LCLVersion = '4.8.0.0'
+  OnActivate = FormActivate
+  OnClose = FormClose
   OnCreate = FormCreate
   inline SynEdit1: TSynEdit
     Left = 24
-    Height = 512
+    Height = 808
     Top = 16
-    Width = 274
+    Width = 186
     Font.CharSet = ANSI_CHARSET
     Font.Height = -13
     Font.Name = 'Consolas'
@@ -20,12 +27,11 @@ object Form1: TForm1
     Font.Quality = fqDraft
     ParentColor = False
     ParentFont = False
-    TabOrder = 0
+    TabOrder = 3
     OnClick = SynEdit1Click
     OnKeyDown = SynEdit1KeyDown
-    OnKeyPress = SynEdit1KeyPress
     OnKeyUp = SynEdit1KeyUp
-    Gutter.Width = 55
+    Gutter.Width = 62
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -483,14 +489,14 @@ object Form1: TForm1
         MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
-        Width = 15
+        Width = 22
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
         MarkupInfo.Foreground = clNone
-        DigitCount = 2
+        DigitCount = 3
         ShowOnlyLineNumbersMultiplesOf = 1
         ZeroStart = False
-        LeadingZeros = False
+        LeadingZeros = True
       end
       object SynGutterChanges1: TSynGutterChanges
         Width = 4
@@ -516,99 +522,63 @@ object Form1: TForm1
       end
     end
   end
-  object CheckBox1: TCheckBox
-    Left = 24
-    Height = 19
-    Hint = 'hmmmm'
-    Top = 304
-    Width = 76
-    Caption = 'CheckBox1'
-    TabOrder = 1
-  end
-  object Button1: TButton
-    Left = 25
-    Height = 25
-    Top = 680
-    Width = 75
-    Caption = 'Button1'
-    TabOrder = 2
-    OnClick = Button1Click
-  end
-  object Panel1: TPanel
-    Left = 32
-    Height = 50
-    Top = 608
-    Width = 386
-    ClientHeight = 50
-    ClientWidth = 386
-    TabOrder = 3
-    object Label3: TLabel
-      Left = 176
-      Height = 15
-      Top = 8
-      Width = 122
-      AutoSize = False
-      Caption = 'Label3'
-    end
-    object Label2: TLabel
-      Left = 128
-      Height = 15
-      Top = 8
-      Width = 34
-      AutoSize = False
-      Caption = 'Label2'
-    end
-    object Label1: TLabel
-      Left = 64
-      Height = 15
-      Top = 8
-      Width = 34
-      AutoSize = False
-      Caption = 'Label1'
-    end
-  end
   object ListBox1: TListBox
-    Left = 312
-    Height = 511
+    Left = 304
+    Height = 336
     Top = 16
-    Width = 100
+    Width = 60
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlue
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     Items.Strings = (
       'X<>'
-      'X<>Y'
-      'X<O?'
-      'X<Y?'
-      'X≤O?'
-      'X≤Y?'
-      'X=O?'
       'X=Y?'
-      'X≠O?'
       'X≠Y?'
-      'X>O?'
       'X>Y?'
-      'X≥O?'
+      'X<Y?'
       'X≥Y?'
+      'X≤Y?'
+      ''
       'X=?'
       'X≠?'
       'X<?'
       'X>?'
       'X≤?'
+      'X≠?'
       'X≥?'
+      ''
+      'X=0?'
+      'X≠0?'
+      'X>0?'
+      'X<0?'
+      'X≤0?'
+      'X≥0?'
+    )
+    ItemHeight = 15
+    ParentFont = False
+    TabOrder = 1
+    OnClick = ListBox1Click
+  end
+  object ListBox2: TListBox
+    Left = 376
+    Height = 336
+    Top = 8
+    Width = 60
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlue
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    Items.Strings = (
       '0=?'
       '0≠?'
       '0<?'
       '0>?'
       '0≤?'
+      '0≠?'
       '0≥?'
-      ''
-      ''
-      ''
-      'XEQ'
-      'XOR'
-      'XTOA'
       'X↑2'
-      'YINT'
       'Y↑X'
-      '1/X'
       '10↑X'
       'Σ+'
       'Σ–'
@@ -624,54 +594,87 @@ object Form1: TForm1
       '→REC'
     )
     ItemHeight = 15
-    TabOrder = 4
-    OnClick = ListBox1Click
-  end
-  object Memo1: TMemo
-    Left = 523
-    Height = 684
-    Top = 24
-    Width = 150
-    Lines.Strings = (
-      'Memo1'
-    )
-    TabOrder = 5
-  end
-  object ListBox2: TListBox
-    Left = 424
-    Height = 288
-    Top = 136
-    Width = 100
-    Items.Strings = (
-      'X'
-      'Y'
-      'Y?'
-      '0?'
-      '0'
-      '?'
-      '='
-      '≠'
-      '≤'
-      '≥'
-      '>'
-      '<'
-    )
-    ItemHeight = 15
-    TabOrder = 6
+    ParentFont = False
+    TabOrder = 2
     OnClick = ListBox2Click
   end
-  object Button2: TButton
-    Left = 432
-    Height = 25
-    Top = 64
-    Width = 75
-    Caption = 'Button2'
+  object btnProgrammingMode: TButton
+    Left = 304
+    Height = 72
+    Top = 456
+    Width = 128
+    Caption = 'Toggle Programming Mode'
+    TabOrder = 0
+    OnClick = btnProgrammingModeClick
+  end
+  object btnExportToPlus42: TButton
+    Left = 304
+    Height = 72
+    Top = 360
+    Width = 128
+    Caption = 'Paste to Free42'
+    TabOrder = 4
+    OnClick = btnExportToPlus42Click
+  end
+  object btnImportFromPlus42: TButton
+    Left = 304
+    Height = 72
+    Top = 544
+    Width = 128
+    Caption = 'Copy from Free42'
+    TabOrder = 5
+    OnClick = btnImportFromPlus42Click
+  end
+  object btnLoad: TButton
+    Left = 304
+    Height = 72
+    Top = 704
+    Width = 128
+    Caption = 'Load'
+    TabOrder = 6
+    OnClick = btnLoadClick
+  end
+  object btnSave: TButton
+    Left = 304
+    Height = 72
+    Top = 624
+    Width = 128
+    Caption = 'Save'
     TabOrder = 7
-    OnClick = Button2Click
+    OnClick = btnSaveClick
+  end
+  object Button1: TButton
+    Left = 304
+    Height = 25
+    Top = 799
+    Width = 128
+    Caption = 'Button1'
+    TabOrder = 8
+  end
+  object ListBox3: TListBox
+    Left = 232
+    Height = 336
+    Top = 16
+    Width = 60
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlue
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    Items.Strings = (
+      '0=?'
+      '0≠?'
+      '0<?'
+      '0>?'
+      '0≤?'
+      '0≥?'
+    )
+    ItemHeight = 15
+    ParentFont = False
+    TabOrder = 9
   end
   object Timer1: TTimer
-    Interval = 100
-    OnTimer = Timer1Timer
+    Enabled = False
+    Interval = 2000
     Left = 35
     Top = 45
   end
@@ -686,5 +689,64 @@ object Form1: TForm1
     ActiveDot = False
     Left = 29
     Top = 118
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'RPN file(*.okken)|*.okken|RPN file(*.txt)||*.txt'
+    Left = 29
+    Top = 186
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.okken'
+    Filter = 'RPN file(*.okken)|*.okken|RPN file(*.txt)||*.txt'
+    Left = 20
+    Top = 253
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    FileName = 'c:\'
+    InitialDir = 'C:\Users\Owner\Documents\Lazarus Projects\'
+    Left = 18
+    Top = 317
+  end
+  object MainMenu1: TMainMenu
+    Left = 74
+    Top = 15
+    object mnuSetup: TMenuItem
+      Caption = 'Setup'
+      object mnuSelectSaveDirectory: TMenuItem
+        Caption = 'Default folder'
+        OnClick = mnuSelectSaveDirectoryClick
+      end
+      object mnuSelectColours: TMenuItem
+        Caption = 'Colours'
+        OnClick = mnuSelectColoursClick
+      end
+    end
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    Left = 24
+    Top = 389
   end
 end

@@ -26,9 +26,6 @@
     </RunParams>
     <RequiredPackages>
       <Item>
-        <PackageName Value="synfacilsyn"/>
-      </Item>
-      <Item>
         <PackageName Value="SynEditDsgn"/>
       </Item>
       <Item>
@@ -52,6 +49,10 @@
       </Unit>
       <Unit>
         <Filename Value="Plus42Comms.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="SetupSynEdit.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
