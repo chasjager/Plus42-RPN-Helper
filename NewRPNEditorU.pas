@@ -5,10 +5,10 @@ unit NewRPNEditorU;
 interface
 
 uses
-  Classes, SysUtils , Types, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, SynEdit, SynEditTypes , SynHighlighterAny, LCLType, StrUtils ,
-  SynFacilHighlighter , SynEditHighlighter ,  Plus42Comms , Clipbrd , Menus ,
-  SetupSynEdit
+  Classes , SysUtils , Types , Forms , Controls , Graphics , Dialogs , StdCtrls ,
+	ExtCtrls , SynEdit , SynEditTypes , SynHighlighterAny , LCLType , StrUtils ,
+	SynFacilHighlighter , SynEditHighlighter , SpinEx , Plus42Comms , Clipbrd ,
+	Menus , SetupSynEdit
   ;
 
 type
@@ -21,11 +21,9 @@ type
 		 btnImportFromPlus42: TButton;
 		 btnLoad: TButton;
 		 btnSave: TButton;
-		 Button1: TButton;
 		 ColorDialog1: TColorDialog;
 		 ListBox1: TListBox;
 		 ListBox2: TListBox;
-		 ListBox3: TListBox;
 		 MainMenu1: TMainMenu;
 		 mnuSelectSaveDirectory: TMenuItem;
 		 mnuSelectColours: TMenuItem;
@@ -33,8 +31,10 @@ type
 		 OpenDialog1: TOpenDialog;
 		 SaveDialog1: TSaveDialog;
 		 SelectDirectoryDialog1: TSelectDirectoryDialog;
+		 SpinEditEx1: TSpinEditEx;
 		SynAnySyn1: TSynAnySyn;
     SynEdit1: TSynEdit;
+		SynEdit2: TSynEdit;
     Timer1: TTimer;
 
 		procedure btnLoadClick(Sender: TObject);
@@ -47,6 +47,7 @@ type
 		procedure ListBox2Click(Sender: TObject);
 		procedure mnuSelectColoursClick(Sender: TObject);
 		procedure mnuSelectSaveDirectoryClick(Sender: TObject);
+		procedure SpinEditEx1Change(Sender: TObject);
     procedure SynEdit1Click(Sender: TObject);
     procedure SynEdit1Change(Sender: TObject);
     procedure SynEdit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -221,8 +222,6 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   ConfigList := TStringlist.Create;
   ConfigureRPNHighlighter(SynEdit1, SynAnySyn1);
-
-
   LocalLabels := splitstring('A B C D E F G H I J a b c d e', ' ');
   Arithmeticals := SplitString('+ - / *', ' ');
   Alphacommands:= SplitString('CLV CLP XEQ GTO AVIEW VIEW STO STO+ STO- STO* ' +
@@ -240,8 +239,12 @@ begin
   ssCount := 0;
   btnProgrammingMode.Caption := 'Toggle' + LineEnding
                                   + 'Programming' + LineEnding + 'Mode';
-   Fsavekey := 'save_directory';
-
+  FSavekey := 'save_directory';
+  if not FileExists('config.conf') then begin
+    ConfigList.Add('save_directory=C:\');
+    ConfigList.SaveToFile('config.conf');
+	end;
+  SpinEditEx1.value := SynEdit1.Gutter.Width;
 end;
 
 
@@ -294,11 +297,19 @@ begin
   ConfigList.Values[Fsavekey] := FSaveDirectory;
 end;
 
+procedure TForm1.SpinEditEx1Change(Sender: TObject);
+begin
+   SynEdit1.Gutter.Width := SpinEditEx1.Value;
+end;
+
 procedure TForm1.FormActivate(Sender: TObject);
 begin
-  if FileExists('config.txt') then
-    ConfigList.LoadFromFile('config.txt');
-  showmessage(ConfigList[0]);
+  if FileExists('config.conf') then
+    ConfigList.LoadFromFile('config.conf')
+  else
+    //
+
+    Showmessage(ConfigList[0]);
   SelectDirectoryDialog1.InitialDir := ConfigList.Values[Fsavekey];
 end;
 
@@ -419,11 +430,13 @@ var
 
 begin
   Timestamp := FormatDateTime('yyyymmdd_hhnnss', Now);
-  UniqueFileName := ExtractFilePath(ParamStr(0)) + 'SavedSession_' + Timestamp + '.okken';
+  UniqueFileName := ExtractFilePath(ParamStr(0))
+                    + 'SavedSession_' + Timestamp + '.okken';
   SynEdit1.Lines.SaveToFile(UniqueFileName);
-  ConfigList.SaveToFile('config.txt');
+  ConfigList.SaveToFile('config.conf');
 
-  ConfigList.free;
+  ConfigList.Free;
+  VarsList.Free;
 end;
 
 
