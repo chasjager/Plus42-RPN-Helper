@@ -155,9 +155,8 @@ begin
     1:  begin
 
         end;
-    {  ONLY REJECT STRINGIFY IF ARR[0] = 'LBL'  }
-    2:  //if (arr[0] in AlphaCommands) and ( ARR[0] = 'LBL')(arr[1] in LocalLabels)  then
-          if (arr[0] = 'LBL') and (arr[1] in LocalLabels) then
+       {  ONLY REJECT STRINGIFY IF ARR[0] = 'LBL'  }
+    2:  if (arr[0] = 'LBL') and (arr[1] in LocalLabels) then
           Exit
         else if (arr[0] in Alphacommands)  then begin
           s := arr[1];
@@ -438,6 +437,10 @@ begin
                     + 'SavedSession_' + Timestamp + '.okken';
   SynEdit1.Lines.SaveToFile(UniqueFileName);
   ConfigList.SaveToFile('config.conf');
+  /===================================================================
+
+
+
 
   ConfigList.Free;
   VarsList.Free;

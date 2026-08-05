@@ -26,6 +26,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="dcpcrypt"/>
+      </Item>
+      <Item>
         <PackageName Value="LazControls"/>
       </Item>
       <Item>
