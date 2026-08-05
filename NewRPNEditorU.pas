@@ -16,26 +16,28 @@ type
 	{ TForm1 }
 
   TForm1 = class(TForm)
-		 btnProgrammingMode: TButton;
 		 btnExportToPlus42: TButton;
 		 btnImportFromPlus42: TButton;
 		 btnLoad: TButton;
+		 btnProgrammingMode: TButton;
 		 btnSave: TButton;
 		 ColorDialog1: TColorDialog;
 		 ListBox1: TListBox;
 		 ListBox2: TListBox;
 		 MainMenu1: TMainMenu;
-		 mnuSelectSaveDirectory: TMenuItem;
 		 mnuSelectColours: TMenuItem;
+		 mnuSelectSaveDirectory: TMenuItem;
 		 mnuSetup: TMenuItem;
 		 OpenDialog1: TOpenDialog;
+		 Panel1: TPanel;
 		 SaveDialog1: TSaveDialog;
 		 SelectDirectoryDialog1: TSelectDirectoryDialog;
 		 SpinEditEx1: TSpinEditEx;
-		SynAnySyn1: TSynAnySyn;
-    SynEdit1: TSynEdit;
-		SynEdit2: TSynEdit;
-    Timer1: TTimer;
+		 SynAnySyn1: TSynAnySyn;
+		 SynEdit1: TSynEdit;
+		 SynEdit2: TSynEdit;
+		 SynEdit3: TSynEdit;
+		 Timer1: TTimer;
 
 		procedure btnLoadClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
@@ -153,9 +155,11 @@ begin
     1:  begin
 
         end;
-    2:  if (arr[0] in Alphacommands) and (arr[1] in LocalLabels) then
+    {  ONLY REJECT STRINGIFY IF ARR[0] = 'LBL'  }
+    2:  //if (arr[0] in AlphaCommands) and ( ARR[0] = 'LBL')(arr[1] in LocalLabels)  then
+          if (arr[0] = 'LBL') and (arr[1] in LocalLabels) then
           Exit
-        else if (arr[0] in Alphacommands) then begin
+        else if (arr[0] in Alphacommands)  then begin
           s := arr[1];
           s := StringReplace(s, '"', '', [rfReplaceAll]);
           VarsList.Add(s);
@@ -168,7 +172,7 @@ begin
           SynEdit1.Lines[Synedit1.CaretY - 1]  := s;
         end;
     3:  begin
-          if (arr[0] in Alphacommands) and (arr[2] in LocalLabels) then
+          if (arr[0] in Alphacommands) and (arr[2] in LocalLabels)  then
             Exit
           else if (arr[0] in Alphacommands) then begin
 	           s := arr[2];
