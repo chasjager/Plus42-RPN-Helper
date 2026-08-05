@@ -437,7 +437,7 @@ begin
                     + 'SavedSession_' + Timestamp + '.okken';
   SynEdit1.Lines.SaveToFile(UniqueFileName);
   ConfigList.SaveToFile('config.conf');
-  /===================================================================
+  //===================================================================
 
 
 

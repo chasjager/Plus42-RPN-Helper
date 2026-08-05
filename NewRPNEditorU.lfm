@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 235
+  Left = 222
   Height = 948
-  Top = 206
+  Top = 120
   Width = 607
   Caption = 'Jager-meister RPN editor'
   ClientHeight = 948
