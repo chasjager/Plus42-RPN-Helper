@@ -10,8 +10,7 @@ uses
    athreads ,
    {$ENDIF}
    Interfaces , // this includes the LCL widgetset
-   Forms , lazcontrols , NewRPNEditorU , Plus42Comms , SetupSynEdit
-   { you can add units after this };
+   Forms , lazcontrols , NewRPNEditorU , Plus42Comms , SetupSynEdit ;
 
 {$R *.res}
 

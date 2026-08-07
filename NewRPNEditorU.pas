@@ -8,7 +8,7 @@ uses
   Classes , SysUtils , Types , Forms , Controls , Graphics , Dialogs , StdCtrls ,
 	ExtCtrls , SynEdit , SynEditTypes , SynHighlighterAny , LCLType , StrUtils ,
 	SynFacilHighlighter , SynEditHighlighter , SpinEx , Plus42Comms , Clipbrd ,
-	Menus , SetupSynEdit
+	Menus , DCPsha256 , SetupSynEdit
   ;
 
 type
@@ -25,6 +25,7 @@ type
 		 ListBox1: TListBox;
 		 ListBox2: TListBox;
 		 MainMenu1: TMainMenu;
+		 MenuItem1: TMenuItem;
 		 mnuSelectColours: TMenuItem;
 		 mnuSelectSaveDirectory: TMenuItem;
 		 mnuSetup: TMenuItem;
@@ -32,11 +33,9 @@ type
 		 Panel1: TPanel;
 		 SaveDialog1: TSaveDialog;
 		 SelectDirectoryDialog1: TSelectDirectoryDialog;
-		 SpinEditEx1: TSpinEditEx;
 		 SynAnySyn1: TSynAnySyn;
 		 SynEdit1: TSynEdit;
 		 SynEdit2: TSynEdit;
-		 SynEdit3: TSynEdit;
 		 Timer1: TTimer;
 
 		procedure btnLoadClick(Sender: TObject);
@@ -49,7 +48,7 @@ type
 		procedure ListBox2Click(Sender: TObject);
 		procedure mnuSelectColoursClick(Sender: TObject);
 		procedure mnuSelectSaveDirectoryClick(Sender: TObject);
-		procedure SpinEditEx1Change(Sender: TObject);
+
     procedure SynEdit1Click(Sender: TObject);
     procedure SynEdit1Change(Sender: TObject);
     procedure SynEdit1KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -247,7 +246,7 @@ begin
     ConfigList.Add('save_directory=C:\');
     ConfigList.SaveToFile('config.conf');
 	end;
-  SpinEditEx1.value := SynEdit1.Gutter.Width;
+
 end;
 
 
@@ -300,10 +299,7 @@ begin
   ConfigList.Values[Fsavekey] := FSaveDirectory;
 end;
 
-procedure TForm1.SpinEditEx1Change(Sender: TObject);
-begin
-   SynEdit1.Gutter.Width := SpinEditEx1.Value;
-end;
+
 
 procedure TForm1.FormActivate(Sender: TObject);
 begin
